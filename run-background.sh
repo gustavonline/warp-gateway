@@ -72,6 +72,8 @@ start_bg ngrok "$NGROK" http 8320
 
 echo "Waiting for gateway..."
 wait_http "http://127.0.0.1:8320/health" 25
+health_json="$(curl -fsS http://127.0.0.1:8320/health)"
+models_list="$(printf '%s' "$health_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const j=JSON.parse(s); for (const m of (j.models||[])) console.log(m)})')"
 
 echo "Waiting for ngrok public URL..."
 endpoint=""
@@ -96,8 +98,22 @@ fi
 
 echo
 echo "Ready."
-echo "Warp Endpoint URL: $endpoint"
-echo "API key:           dev-key-change-me"
-echo "Model:             gpt-5.4"
 echo
+echo "Add this in Warp:"
+echo "1. Open Warp Settings"
+echo "2. Search for 'inference endpoint' or open Custom Inference Endpoint"
+echo "3. Add the following values:"
+echo
+echo "Endpoint URL: $endpoint"
+echo "API key:      dev-key-change-me"
+echo "Model:        gpt-5.4"
+echo
+echo "Available model names:"
+printf '%s\n' "$models_list" | sed 's/^/- /'
+echo
+echo "Recommended Codex model: gpt-5.4"
+echo "Recommended local LLM model on Gustav's Windows machine: lemonade/Gemma-4-26B-A4B-it-GGUF"
+echo
+echo "Endpoint URL copied to clipboard when clipboard support is available."
+echo "Note: the ngrok URL may change each time you restart ngrok."
 echo "Stop everything with: ./stop-all.sh"

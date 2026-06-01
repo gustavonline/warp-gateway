@@ -61,7 +61,7 @@ Start-Sleep -Seconds 1
 Start-Bg "ngrok" "& '$Ngrok' http 8320"
 
 Write-Host "Waiting for local services..." -ForegroundColor Cyan
-Wait-Http "http://127.0.0.1:8320/health" | Out-Null
+$Health = Wait-Http "http://127.0.0.1:8320/health"
 
 Write-Host "Waiting for ngrok public URL..." -ForegroundColor Cyan
 $Tunnel = $null
@@ -85,8 +85,16 @@ Set-Content -Path (Join-Path $RunDir "endpoint.txt") -Value $Endpoint
 Set-Clipboard $Endpoint
 
 Write-Host "\nReady." -ForegroundColor Green
-Write-Host "Warp Endpoint URL: $Endpoint" -ForegroundColor Green
-Write-Host "API key:           dev-key-change-me"
-Write-Host "Model:             gpt-5.4"
-Write-Host "\nEndpoint copied to clipboard."
+Write-Host "\nAdd this in Warp:" -ForegroundColor Cyan
+Write-Host "1. Open Warp Settings"
+Write-Host "2. Search for 'inference endpoint' or open Custom Inference Endpoint"
+Write-Host "3. Add the following values:"
+Write-Host "\nEndpoint URL: $Endpoint" -ForegroundColor Green
+Write-Host "API key:      dev-key-change-me"
+Write-Host "Model:        gpt-5.4"
+Write-Host "\nAvailable model names:"
+foreach ($Model in $Health.models) { Write-Host "- $Model" }
+Write-Host "\nRecommended Codex model: gpt-5.4"
+Write-Host "Recommended local LLM model on Gustav's Windows machine: lemonade/Gemma-4-26B-A4B-it-GGUF"
+Write-Host "\nEndpoint URL copied to clipboard. Note: the ngrok URL may change each time you restart ngrok."
 Write-Host "Stop everything with: .\stop-all.ps1"

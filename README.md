@@ -97,7 +97,14 @@ API key: dev-key-change-me
 Model: gpt-5.4
 ```
 
-Other available models:
+Recommended models:
+
+```txt
+Codex/ChatMock: gpt-5.4
+Local LLM on Gustav's Windows machine: lemonade/Gemma-4-26B-A4B-it-GGUF
+```
+
+Other ChatMock models:
 
 ```txt
 gpt-5.5
@@ -106,6 +113,8 @@ gpt-5.2
 gpt-5.3-codex
 gpt-5.3-codex-spark
 ```
+
+Local LLM models are only available on machines where Lemonade is installed and running. On macOS, use the ChatMock/Codex model unless you set up a local LLM there too.
 
 ## Files
 
