@@ -69,22 +69,37 @@ fi
 
 echo
 echo "[4/5] ngrok token"
-TOKEN_URL="https://dashboard.ngrok.com/get-started/your-authtoken"
-echo "Get your token here: $TOKEN_URL"
-read -r -p "Open ngrok token page in your browser? (Y/n) " open_ngrok
-if [[ ! "$open_ngrok" =~ ^[nN]$ ]]; then
-  if command -v open >/dev/null 2>&1; then open "$TOKEN_URL" >/dev/null 2>&1 || true
-  elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$TOKEN_URL" >/dev/null 2>&1 || true
-  fi
+if ngrok config check >/dev/null 2>&1; then
+  echo "ngrok already has a valid config/token."
+  read -r -p "Replace ngrok authtoken? (y/N) " replace_token
+else
+  replace_token="y"
 fi
-read -r -p "Paste ngrok authtoken (leave empty to skip if already configured): " token
-if [[ -n "${token// }" ]]; then ngrok config add-authtoken "$token"; else echo "Skipping token setup."; fi
+
+if [[ "$replace_token" =~ ^[yY]$ ]]; then
+  TOKEN_URL="https://dashboard.ngrok.com/get-started/your-authtoken"
+  echo "Get your token here: $TOKEN_URL"
+  read -r -p "Open ngrok token page in your browser? (Y/n) " open_ngrok
+  if [[ ! "$open_ngrok" =~ ^[nN]$ ]]; then
+    if command -v open >/dev/null 2>&1; then open "$TOKEN_URL" >/dev/null 2>&1 || true
+    elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$TOKEN_URL" >/dev/null 2>&1 || true
+    fi
+  fi
+  read -r -p "Paste ngrok authtoken: " token
+  if [[ -n "${token// }" ]]; then ngrok config add-authtoken "$token"; else echo "No token pasted; skipping token setup."; fi
+fi
 
 echo
 echo "[5/5] ChatMock login"
-echo "A browser/OAuth login may open. Log in with your ChatGPT/Codex account."
-read -r -p "Run 'chatmock login' now? (Y/n) " do_login
-if [[ ! "$do_login" =~ ^[nN]$ ]]; then chatmock login; fi
+if chatmock info 2>/dev/null | grep -q "Signed in"; then
+  echo "ChatMock is already signed in."
+  read -r -p "Run 'chatmock login' again? (y/N) " do_login
+  [[ "$do_login" =~ ^[yY]$ ]] && chatmock login
+else
+  echo "A browser/OAuth login may open. Log in with your ChatGPT/Codex account."
+  read -r -p "Run 'chatmock login' now? (Y/n) " do_login
+  [[ "$do_login" =~ ^[nN]$ ]] || chatmock login
+fi
 
 echo
 echo "Setup complete. Start with: ./scripts/macos/run.sh"

@@ -40,33 +40,61 @@ Write-Host "[2/5] Installing/updating ChatMock..." -ForegroundColor Cyan
 python -m pip install --upgrade chatmock
 
 Write-Host ""
-Write-Host "[3/5] Installing/updating local ngrok..." -ForegroundColor Cyan
+Write-Host "[3/5] Installing/checking local ngrok..." -ForegroundColor Cyan
 $NgrokDir = Join-Path $Root "tools\ngrok"
 $NgrokZip = Join-Path $NgrokDir "ngrok.zip"
 $NgrokExe = Join-Path $NgrokDir "ngrok.exe"
 New-Item -ItemType Directory -Force -Path $NgrokDir | Out-Null
-Invoke-WebRequest -Uri "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip" -OutFile $NgrokZip
-Expand-Archive -Force $NgrokZip $NgrokDir
+if (-not (Test-Path $NgrokExe)) {
+  Invoke-WebRequest -Uri "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip" -OutFile $NgrokZip
+  Expand-Archive -Force $NgrokZip $NgrokDir
+}
 & $NgrokExe version
 
 Write-Host ""
 Write-Host "[4/5] ngrok token" -ForegroundColor Cyan
-$TokenUrl = "https://dashboard.ngrok.com/get-started/your-authtoken"
-Write-Host "Get your token here: $TokenUrl"
-$OpenNgrok = Read-Host "Open ngrok token page in your browser? (Y/n)"
-if ($OpenNgrok -notmatch '^(n|N)$') { Start-Process $TokenUrl }
-$Token = Read-Host "Paste ngrok authtoken (leave empty to skip if already configured)"
-if (-not [string]::IsNullOrWhiteSpace($Token)) {
-  & $NgrokExe config add-authtoken $Token
+$NgrokConfigOk = $false
+try {
+  $ConfigCheck = & $NgrokExe config check 2>&1
+  $NgrokConfigOk = ($LASTEXITCODE -eq 0 -and ($ConfigCheck -join "`n") -match "Valid configuration")
+} catch {}
+
+if ($NgrokConfigOk) {
+  Write-Host "ngrok already has a valid config/token."
+  $ReplaceToken = Read-Host "Replace ngrok authtoken? (y/N)"
 } else {
-  Write-Host "Skipping token setup."
+  $ReplaceToken = "y"
+}
+
+if ($ReplaceToken -match '^(y|Y)$') {
+  $TokenUrl = "https://dashboard.ngrok.com/get-started/your-authtoken"
+  Write-Host "Get your token here: $TokenUrl"
+  $OpenNgrok = Read-Host "Open ngrok token page in your browser? (Y/n)"
+  if ($OpenNgrok -notmatch '^(n|N)$') { Start-Process $TokenUrl }
+  $Token = Read-Host "Paste ngrok authtoken"
+  if (-not [string]::IsNullOrWhiteSpace($Token)) {
+    & $NgrokExe config add-authtoken $Token
+  } else {
+    Write-Host "No token pasted; skipping token setup."
+  }
 }
 
 Write-Host ""
 Write-Host "[5/5] ChatMock login" -ForegroundColor Cyan
-Write-Host "A browser/OAuth login may open. Log in with your ChatGPT/Codex account."
-$Login = Read-Host "Run 'chatmock login' now? (Y/n)"
-if ($Login -notmatch '^(n|N)$') { chatmock login }
+$ChatMockLoggedIn = $false
+try {
+  $ChatMockInfo = chatmock info 2>&1
+  $ChatMockLoggedIn = ($LASTEXITCODE -eq 0 -and ($ChatMockInfo -join "`n") -match "Signed in")
+} catch {}
+
+if ($ChatMockLoggedIn) {
+  Write-Host "ChatMock is already signed in."
+  $Login = Read-Host "Run 'chatmock login' again? (y/N)"
+} else {
+  Write-Host "A browser/OAuth login may open. Log in with your ChatGPT/Codex account."
+  $Login = Read-Host "Run 'chatmock login' now? (Y/n)"
+}
+if (($ChatMockLoggedIn -and $Login -match '^(y|Y)$') -or (-not $ChatMockLoggedIn -and $Login -notmatch '^(n|N)$')) { chatmock login }
 
 Write-Host ""
 Write-Host "Setup complete." -ForegroundColor Green

@@ -31,14 +31,15 @@ cd ~/Downloads/warp-gateway
 ./scripts/macos/setup.sh
 ```
 
-The setup script will:
+The setup script is safe to run multiple times. It will:
 
-1. Create a local `config/config.json` with a random gateway API key.
+1. Create a local `config/config.json` with a random gateway API key if it does not exist.
 2. Install/update ChatMock.
 3. Install/check ngrok.
-4. Open the ngrok token page: <https://dashboard.ngrok.com/get-started/your-authtoken>
-5. Let you paste your ngrok token.
-6. Run `chatmock login` for your ChatGPT/Codex account.
+4. Skip ngrok token setup if a valid token is already configured, or let you replace it.
+5. Skip ChatMock login if you are already signed in, or let you log in again.
+
+ngrok token page: <https://dashboard.ngrok.com/get-started/your-authtoken>
 
 ## Daily use
 
