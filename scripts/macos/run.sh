@@ -87,7 +87,7 @@ if [[ -n "$endpoint" ]]; then
   echo "Warp config:"
   echo "Endpoint URL: $endpoint"
   echo "API key:      dev-key-change-me"
-  echo "Model:        gpt-5.4"
+  echo "Model:        gpt-5.5"
   echo
   echo "Endpoint copied to clipboard when available."
 fi

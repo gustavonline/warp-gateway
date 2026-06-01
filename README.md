@@ -66,7 +66,7 @@ After startup, use the printed values in Warp:
 ```txt
 Endpoint URL: https://xxxx.ngrok-free.dev/v1
 API key: dev-key-change-me
-Model: gpt-5.4
+Model: gpt-5.5
 ```
 
 The ngrok URL is dynamic and may change when ngrok restarts, so use the URL printed by the latest run.
@@ -76,32 +76,27 @@ The ngrok URL is dynamic and may change when ngrok restarts, so use the URL prin
 Recommended:
 
 ```txt
-Codex/ChatMock: gpt-5.4
+Codex/ChatMock: gpt-5.5
 Local LLM with Lemonade: use one of the printed lemonade/... models
 ```
 
-ChatMock models:
+ChatMock model:
 
 ```txt
 gpt-5.5
-gpt-5.4
-gpt-5.4-mini
-gpt-5.2
-gpt-5.3-codex
-gpt-5.3-codex-spark
 ```
 
 Thinking-level aliases:
 
 ```txt
-gpt-5.4-minimal
-gpt-5.4-low
-gpt-5.4-medium
-gpt-5.4-high
-gpt-5.4-xhigh
+gpt-5.5-minimal
+gpt-5.5-low
+gpt-5.5-medium
+gpt-5.5-high
+gpt-5.5-xhigh
 ```
 
-These aliases all route to `gpt-5.4` and add a `reasoning_effort` override for ChatMock. Use them in Warp's model field when you want a specific thinking level.
+These aliases all route to `gpt-5.5` and add a `reasoning_effort` override for ChatMock. Use them in Warp's model field when you want a specific thinking level.
 
 Lemonade models are discovered automatically from:
 

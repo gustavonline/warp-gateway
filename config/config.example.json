@@ -9,17 +9,12 @@
       "apiKey": "anything",
       "models": [
         { "id": "gpt-5.5", "name": "ChatMock GPT-5.5" },
-        { "id": "gpt-5.4", "name": "ChatMock GPT-5.4" },
-        { "id": "gpt-5.4-mini", "name": "ChatMock GPT-5.4 Mini" },
-        { "id": "gpt-5.2", "name": "ChatMock GPT-5.2" },
-        { "id": "gpt-5.3-codex", "name": "ChatMock GPT-5.3 Codex" },
-        { "id": "gpt-5.3-codex-spark", "name": "ChatMock GPT-5.3 Codex Spark" },
 
-        { "id": "gpt-5.4-minimal", "upstreamModel": "gpt-5.4", "name": "GPT-5.4 Minimal Thinking", "requestOverrides": { "reasoning_effort": "minimal" } },
-        { "id": "gpt-5.4-low", "upstreamModel": "gpt-5.4", "name": "GPT-5.4 Low Thinking", "requestOverrides": { "reasoning_effort": "low" } },
-        { "id": "gpt-5.4-medium", "upstreamModel": "gpt-5.4", "name": "GPT-5.4 Medium Thinking", "requestOverrides": { "reasoning_effort": "medium" } },
-        { "id": "gpt-5.4-high", "upstreamModel": "gpt-5.4", "name": "GPT-5.4 High Thinking", "requestOverrides": { "reasoning_effort": "high" } },
-        { "id": "gpt-5.4-xhigh", "upstreamModel": "gpt-5.4", "name": "GPT-5.4 Extra High Thinking", "requestOverrides": { "reasoning_effort": "xhigh" } }
+        { "id": "gpt-5.5-minimal", "upstreamModel": "gpt-5.5", "name": "GPT-5.5 Minimal Thinking", "requestOverrides": { "reasoning_effort": "minimal" } },
+        { "id": "gpt-5.5-low", "upstreamModel": "gpt-5.5", "name": "GPT-5.5 Low Thinking", "requestOverrides": { "reasoning_effort": "low" } },
+        { "id": "gpt-5.5-medium", "upstreamModel": "gpt-5.5", "name": "GPT-5.5 Medium Thinking", "requestOverrides": { "reasoning_effort": "medium" } },
+        { "id": "gpt-5.5-high", "upstreamModel": "gpt-5.5", "name": "GPT-5.5 High Thinking", "requestOverrides": { "reasoning_effort": "high" } },
+        { "id": "gpt-5.5-xhigh", "upstreamModel": "gpt-5.5", "name": "GPT-5.5 Extra High Thinking", "requestOverrides": { "reasoning_effort": "xhigh" } }
       ]
     },
     "lemonade": {

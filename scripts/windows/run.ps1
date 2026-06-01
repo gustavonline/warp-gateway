@@ -92,7 +92,7 @@ try {
     Write-Host "Warp config:" -ForegroundColor Green
     Write-Host "Endpoint URL: $Endpoint"
     Write-Host "API key:      dev-key-change-me"
-    Write-Host "Model:        gpt-5.4"
+    Write-Host "Model:        gpt-5.5"
     Write-Host ""
     Write-Host "Endpoint copied to clipboard."
   }
