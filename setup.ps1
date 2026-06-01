@@ -57,9 +57,9 @@ if ($Login -notmatch '^(n|N)$') {
 Write-Host "\nSetup complete." -ForegroundColor Green
 $RunNow = Read-Host "Start everything now in the background? (Y/n)"
 if ($RunNow -notmatch '^(n|N)$') {
-  .\run-background.ps1
+  .\run.ps1
 } else {
-  Write-Host "Later, start with: .\run-background.ps1"
+  Write-Host "Later, start with: .\run.ps1"
   Write-Host "That command will print the dynamic ngrok Endpoint URL to paste into Warp."
-  Write-Host "Warp values will be: Endpoint URL = printed by run-background, API key = dev-key-change-me, Model = gpt-5.4"
+  Write-Host "Warp values will be: Endpoint URL = printed by run.ps1, API key = dev-key-change-me, Model = gpt-5.4"
 }

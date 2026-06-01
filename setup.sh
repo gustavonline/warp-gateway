@@ -89,9 +89,9 @@ echo
 echo "Setup complete."
 read -r -p "Start everything now in the background? (Y/n) " run_now
 if [[ ! "$run_now" =~ ^[nN]$ ]]; then
-  ./run-background.sh
+  ./run.sh
 else
-  echo "Later, start with: ./run-background.sh"
+  echo "Later, start with: ./run.sh"
   echo "That command will print the dynamic ngrok Endpoint URL to paste into Warp."
-  echo "Warp values will be: Endpoint URL = printed by run-background, API key = dev-key-change-me, Model = gpt-5.4"
+  echo "Warp values will be: Endpoint URL = printed by run.sh, API key = dev-key-change-me, Model = gpt-5.4"
 fi
