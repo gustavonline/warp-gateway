@@ -70,7 +70,14 @@ if (-not (Test-Path $Ngrok)) {
 try {
   Write-Host "Starting ChatMock and ngrok in background, gateway logs in this terminal..." -ForegroundColor Cyan
   Start-Bg "chatmock" "chatmock serve"
-  Start-Sleep -Seconds 2
+  Write-Host "Waiting for ChatMock on http://127.0.0.1:8000/v1/models..." -ForegroundColor Cyan
+  try {
+    Wait-Http "http://127.0.0.1:8000/v1/models" 30 | Out-Null
+  } catch {
+    Write-Host "ChatMock did not become ready. Check logs/chatmock.err.log and logs/chatmock.out.log" -ForegroundColor Red
+    throw
+  }
+
   Start-Bg "ngrok" "& '$Ngrok' http 8320"
   Start-Sleep -Seconds 2
 
@@ -91,12 +98,26 @@ try {
   if ($Endpoint) {
     Set-Clipboard $Endpoint
     Write-Host ""
-    Write-Host "Warp config:" -ForegroundColor Green
-    Write-Host "Endpoint URL: $Endpoint"
-    Write-Host "API key:      $GatewayApiKey"
-    Write-Host "Model:        gpt-5.5"
+    Write-Host "Warp setup instructions" -ForegroundColor Green
+    Write-Host "1. Open Warp Settings"
+    Write-Host "2. Search for 'Custom Inference Endpoint' or 'inference endpoint'"
+    Write-Host "3. Add/select a custom endpoint with these values:"
     Write-Host ""
-    Write-Host "Endpoint copied to clipboard."
+    Write-Host "Endpoint URL: $Endpoint" -ForegroundColor Green
+    Write-Host "API key:      $GatewayApiKey" -ForegroundColor Green
+    Write-Host "Model:        gpt-5.5" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Thinking aliases you can use as Model instead:"
+    Write-Host "- gpt-5.5-minimal"
+    Write-Host "- gpt-5.5-low"
+    Write-Host "- gpt-5.5-medium"
+    Write-Host "- gpt-5.5-high"
+    Write-Host "- gpt-5.5-xhigh"
+    Write-Host ""
+    Write-Host "Endpoint URL copied to clipboard."
+  } else {
+    Write-Host "ngrok did not expose a public HTTPS endpoint. Check logs/ngrok.err.log and http://127.0.0.1:4040" -ForegroundColor Red
+    throw "ngrok tunnel not ready"
   }
 
   Write-Host ""

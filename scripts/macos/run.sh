@@ -69,7 +69,20 @@ fi
 
 echo "Starting ChatMock and ngrok in background, gateway logs in this terminal..."
 start_bg chatmock chatmock serve
-sleep 2
+
+echo "Waiting for ChatMock on http://127.0.0.1:8000/v1/models..."
+end=$((SECONDS + 30))
+while (( SECONDS < end )); do
+  if curl -fsS http://127.0.0.1:8000/v1/models >/dev/null 2>&1; then
+    break
+  fi
+  sleep 0.5
+done
+if ! curl -fsS http://127.0.0.1:8000/v1/models >/dev/null 2>&1; then
+  echo "ChatMock did not become ready. Check logs/chatmock.err.log and logs/chatmock.out.log" >&2
+  exit 1
+fi
+
 start_bg ngrok "$NGROK" http 8320
 sleep 2
 
@@ -87,12 +100,26 @@ done
 if [[ -n "$endpoint" ]]; then
   command -v pbcopy >/dev/null 2>&1 && printf "%s" "$endpoint" | pbcopy
   echo
-  echo "Warp config:"
+  echo "Warp setup instructions"
+  echo "1. Open Warp Settings"
+  echo "2. Search for 'Custom Inference Endpoint' or 'inference endpoint'"
+  echo "3. Add/select a custom endpoint with these values:"
+  echo
   echo "Endpoint URL: $endpoint"
   echo "API key:      $GATEWAY_API_KEY"
   echo "Model:        gpt-5.5"
   echo
-  echo "Endpoint copied to clipboard when available."
+  echo "Thinking aliases you can use as Model instead:"
+  echo "- gpt-5.5-minimal"
+  echo "- gpt-5.5-low"
+  echo "- gpt-5.5-medium"
+  echo "- gpt-5.5-high"
+  echo "- gpt-5.5-xhigh"
+  echo
+  echo "Endpoint URL copied to clipboard when available."
+else
+  echo "ngrok did not expose a public HTTPS endpoint. Check logs/ngrok.err.log and http://127.0.0.1:4040" >&2
+  exit 1
 fi
 
 echo

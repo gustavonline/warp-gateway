@@ -43,7 +43,7 @@ ngrok token page: <https://dashboard.ngrok.com/get-started/your-authtoken>
 
 ## Daily use
 
-Run one script. It starts ChatMock and ngrok in the background, then runs the gateway in the current terminal so you can see request logs.
+Run one script. It starts ChatMock and ngrok in the background, verifies ChatMock is reachable, prints Warp setup instructions, then runs the gateway in the current terminal so you can see request logs.
 
 ### Windows
 
@@ -63,7 +63,7 @@ Keep this terminal open while using Warp. Press `Ctrl+C` to stop the gateway, Ch
 
 ## Warp configuration
 
-After startup, use the printed values in Warp:
+After startup, the run script prints exact Warp setup instructions. Use the printed values in Warp:
 
 ```txt
 Endpoint URL: https://xxxx.ngrok-free.dev/v1
