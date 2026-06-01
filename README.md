@@ -91,6 +91,18 @@ gpt-5.3-codex
 gpt-5.3-codex-spark
 ```
 
+Thinking-level aliases:
+
+```txt
+gpt-5.4-minimal
+gpt-5.4-low
+gpt-5.4-medium
+gpt-5.4-high
+gpt-5.4-xhigh
+```
+
+These aliases all route to `gpt-5.4` and add a `reasoning_effort` override for ChatMock. Use them in Warp's model field when you want a specific thinking level.
+
 Lemonade models are discovered automatically from:
 
 ```txt

@@ -57,7 +57,10 @@ export async function createOpenAICompatibleAdapter(name, adapterConfig) {
       };
       if (apiKey) outboundHeaders.authorization = `Bearer ${apiKey}`;
 
-      const upstreamBody = { ...requestBody };
+      const upstreamBody = {
+        ...requestBody,
+        ...(model?.requestOverrides || {}),
+      };
       if (requestBody.model) upstreamBody.model = upstreamModel;
       if (requestBody.model_id) upstreamBody.model_id = upstreamModel;
 
