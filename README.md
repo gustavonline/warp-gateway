@@ -33,11 +33,12 @@ cd ~/Downloads/warp-gateway
 
 The setup script will:
 
-1. Install/update ChatMock.
-2. Install/check ngrok.
-3. Open the ngrok token page: <https://dashboard.ngrok.com/get-started/your-authtoken>
-4. Let you paste your ngrok token.
-5. Run `chatmock login` for your ChatGPT/Codex account.
+1. Create a local `config/config.json` with a random gateway API key.
+2. Install/update ChatMock.
+3. Install/check ngrok.
+4. Open the ngrok token page: <https://dashboard.ngrok.com/get-started/your-authtoken>
+5. Let you paste your ngrok token.
+6. Run `chatmock login` for your ChatGPT/Codex account.
 
 ## Daily use
 
@@ -65,11 +66,11 @@ After startup, use the printed values in Warp:
 
 ```txt
 Endpoint URL: https://xxxx.ngrok-free.dev/v1
-API key: dev-key-change-me
+API key: <printed by the run script>
 Model: gpt-5.5
 ```
 
-The ngrok URL is dynamic and may change when ngrok restarts, so use the URL printed by the latest run.
+The ngrok URL is dynamic and may change when ngrok restarts, and the gateway API key is read from your local config. Use the values printed by the latest run.
 
 ## Model names
 

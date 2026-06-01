@@ -60,6 +60,8 @@ function Stop-Port($Port) {
 }
 
 if (-not (Get-Command chatmock -ErrorAction SilentlyContinue)) { python -m pip install --upgrade chatmock }
+$ConfigPath = if (Test-Path (Join-Path $Root "config\config.json")) { Join-Path $Root "config\config.json" } else { Join-Path $Root "config\config.example.json" }
+$GatewayApiKey = node -e "const fs=require('fs'); const c=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); console.log((c.gatewayApiKeys&&c.gatewayApiKeys[0])||'dev-key-change-me')" $ConfigPath
 if (-not (Test-Path $Ngrok)) {
   Write-Error "ngrok not found. Run .\scripts\windows\setup.ps1 first."
   exit 1
@@ -91,7 +93,7 @@ try {
     Write-Host ""
     Write-Host "Warp config:" -ForegroundColor Green
     Write-Host "Endpoint URL: $Endpoint"
-    Write-Host "API key:      dev-key-change-me"
+    Write-Host "API key:      $GatewayApiKey"
     Write-Host "Model:        gpt-5.5"
     Write-Host ""
     Write-Host "Endpoint copied to clipboard."

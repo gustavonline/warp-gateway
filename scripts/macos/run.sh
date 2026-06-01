@@ -58,6 +58,9 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 command -v chatmock >/dev/null 2>&1 || "$PYTHON" -m pip install --upgrade chatmock
+CONFIG_PATH="$ROOT/config/config.json"
+[[ -f "$CONFIG_PATH" ]] || CONFIG_PATH="$ROOT/config/config.example.json"
+GATEWAY_API_KEY="$(node -e "const fs=require('fs'); const c=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); console.log((c.gatewayApiKeys&&c.gatewayApiKeys[0])||'dev-key-change-me')" "$CONFIG_PATH")"
 NGROK="$(command -v ngrok || true)"
 if [[ -z "$NGROK" ]]; then
   echo "ngrok not found. Run ./scripts/macos/setup.sh first."
@@ -86,7 +89,7 @@ if [[ -n "$endpoint" ]]; then
   echo
   echo "Warp config:"
   echo "Endpoint URL: $endpoint"
-  echo "API key:      dev-key-change-me"
+  echo "API key:      $GATEWAY_API_KEY"
   echo "Model:        gpt-5.5"
   echo
   echo "Endpoint copied to clipboard when available."

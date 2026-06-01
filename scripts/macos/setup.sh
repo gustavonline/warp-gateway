@@ -34,11 +34,28 @@ if ! has node; then
 fi
 
 echo
-echo "[1/4] Installing/updating ChatMock..."
+echo "[1/5] Creating local config..."
+if [[ ! -f "$ROOT/config/config.json" ]]; then
+  cp "$ROOT/config/config.example.json" "$ROOT/config/config.json"
+  node - <<'NODE'
+const fs = require('fs');
+const crypto = require('crypto');
+const path = 'config/config.json';
+const config = JSON.parse(fs.readFileSync(path, 'utf8'));
+config.gatewayApiKeys = [crypto.randomBytes(24).toString('hex')];
+fs.writeFileSync(path, JSON.stringify(config, null, 2) + '\n');
+NODE
+  echo "Created config/config.json with a random gateway API key."
+else
+  echo "Using existing config/config.json."
+fi
+
+echo
+echo "[2/5] Installing/updating ChatMock..."
 "$PYTHON" -m pip install --upgrade chatmock
 
 echo
-echo "[2/4] Installing/checking ngrok..."
+echo "[3/5] Installing/checking ngrok..."
 if ! has ngrok; then
   if [[ "$(uname -s)" == "Darwin" ]] && has brew; then
     brew install ngrok/ngrok/ngrok
@@ -51,7 +68,7 @@ else
 fi
 
 echo
-echo "[3/4] ngrok token"
+echo "[4/5] ngrok token"
 TOKEN_URL="https://dashboard.ngrok.com/get-started/your-authtoken"
 echo "Get your token here: $TOKEN_URL"
 read -r -p "Open ngrok token page in your browser? (Y/n) " open_ngrok
@@ -64,7 +81,7 @@ read -r -p "Paste ngrok authtoken (leave empty to skip if already configured): "
 if [[ -n "${token// }" ]]; then ngrok config add-authtoken "$token"; else echo "Skipping token setup."; fi
 
 echo
-echo "[4/4] ChatMock login"
+echo "[5/5] ChatMock login"
 echo "A browser/OAuth login may open. Log in with your ChatGPT/Codex account."
 read -r -p "Run 'chatmock login' now? (Y/n) " do_login
 if [[ ! "$do_login" =~ ^[nN]$ ]]; then chatmock login; fi
