@@ -1,0 +1,16 @@
+{
+  "name": "warp-chatmock-gateway",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "chatmock:install": "python -m pip install --upgrade chatmock",
+    "chatmock:login": "chatmock login",
+    "chatmock:serve": "chatmock serve"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

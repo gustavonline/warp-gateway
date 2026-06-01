@@ -1,0 +1,29 @@
+{
+  "host": "127.0.0.1",
+  "port": 8320,
+  "gatewayApiKeys": ["dev-key-change-me"],
+  "adapters": {
+    "chatmock": {
+      "enabled": true,
+      "baseUrl": "http://127.0.0.1:8000/v1",
+      "apiKey": "anything",
+      "models": [
+        { "id": "gpt-5.5", "name": "ChatMock GPT-5.5" },
+        { "id": "gpt-5.4", "name": "ChatMock GPT-5.4" },
+        { "id": "gpt-5.4-mini", "name": "ChatMock GPT-5.4 Mini" },
+        { "id": "gpt-5.2", "name": "ChatMock GPT-5.2" },
+        { "id": "gpt-5.3-codex", "name": "ChatMock GPT-5.3 Codex" },
+        { "id": "gpt-5.3-codex-spark", "name": "ChatMock GPT-5.3 Codex Spark" },
+        { "id": "codex/gpt-5.3-codex", "upstreamModel": "gpt-5.3-codex", "name": "Codex GPT-5.3 via ChatMock" }
+      ]
+    },
+    "lemonade": {
+      "enabled": false,
+      "baseUrl": "http://127.0.0.1:8001/v1",
+      "apiKey": "lemonade",
+      "models": [
+        { "id": "lemonade/qwen-coder", "upstreamModel": "qwen-coder", "name": "Lemonade Qwen Coder" }
+      ]
+    }
+  }
+}

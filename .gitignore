@@ -1,0 +1,24 @@
+# Runtime/state
+.run/
+logs/
+
+# Local editable config
+config/config.json
+
+# Local binaries/downloads
+tools/
+
+# Dependencies/cache
+node_modules/
+__pycache__/
+*.pyc
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Secrets/env
+.env
+*.local
