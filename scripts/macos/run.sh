@@ -37,6 +37,20 @@ stop_bg() {
   fi
 }
 
+stop_port() {
+  local port="$1"
+  local pids=""
+  if command -v lsof >/dev/null 2>&1; then
+    pids="$(lsof -ti tcp:"$port" 2>/dev/null || true)"
+  fi
+  for pid in $pids; do
+    kill "$pid" >/dev/null 2>&1 || true
+    sleep 0.2
+    kill -9 "$pid" >/dev/null 2>&1 || true
+    echo "Stopped existing process on port $port (PID $pid)"
+  done
+}
+
 cleanup() {
   stop_bg ngrok
   stop_bg chatmock
@@ -55,6 +69,9 @@ start_bg chatmock chatmock serve
 sleep 2
 start_bg ngrok "$NGROK" http 8320
 sleep 2
+
+# Clean up any gateway left behind by an older script/run.
+stop_port 8320
 
 endpoint=""
 end=$((SECONDS + 25))

@@ -48,6 +48,17 @@ function Wait-Http($Url, $Seconds = 20) {
   throw "Timed out waiting for $Url"
 }
 
+function Stop-Port($Port) {
+  $Listeners = Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+  foreach ($Listener in $Listeners) {
+    $PidValue = $Listener.OwningProcess
+    if ($PidValue -and (Get-Process -Id $PidValue -ErrorAction SilentlyContinue)) {
+      Stop-Process -Id $PidValue -Force -ErrorAction SilentlyContinue
+      Write-Host "Stopped existing process on port $Port (PID $PidValue)" -ForegroundColor DarkGray
+    }
+  }
+}
+
 if (-not (Get-Command chatmock -ErrorAction SilentlyContinue)) { python -m pip install --upgrade chatmock }
 if (-not (Test-Path $Ngrok)) {
   Write-Error "ngrok not found. Run .\scripts\windows\setup.ps1 first."
@@ -60,6 +71,9 @@ try {
   Start-Sleep -Seconds 2
   Start-Bg "ngrok" "& '$Ngrok' http 8320"
   Start-Sleep -Seconds 2
+
+  # Clean up any gateway left behind by an older script/run.
+  Stop-Port 8320
 
   $Endpoint = $null
   $Deadline = (Get-Date).AddSeconds(25)
@@ -74,14 +88,17 @@ try {
 
   if ($Endpoint) {
     Set-Clipboard $Endpoint
-    Write-Host "\nWarp config:" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Warp config:" -ForegroundColor Green
     Write-Host "Endpoint URL: $Endpoint"
     Write-Host "API key:      dev-key-change-me"
     Write-Host "Model:        gpt-5.4"
-    Write-Host "\nEndpoint copied to clipboard."
+    Write-Host ""
+    Write-Host "Endpoint copied to clipboard."
   }
 
-  Write-Host "\nGateway logs below. Keep this terminal open. Ctrl+C stops everything." -ForegroundColor Cyan
+  Write-Host ""
+  Write-Host "Gateway logs below. Keep this terminal open. Ctrl+C stops everything." -ForegroundColor Cyan
   node src/server.js
 }
 finally {
