@@ -1,14 +1,13 @@
 $ErrorActionPreference = "Stop"
 
-$Root = Split-Path -Parent $MyInvocation.MyCommand.Path
+$Root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location $Root
 
 function Has-Command($Name) {
   return [bool](Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
-Write-Host "=== Warp ChatMock Gateway setup ===" -ForegroundColor Cyan
-Write-Host "This will install ChatMock, install/update ngrok, configure your ngrok token, and run ChatMock login."
+Write-Host "=== Warp ChatMock Gateway setup (Windows) ===" -ForegroundColor Cyan
 Write-Host "Project: $Root"
 
 if (-not (Has-Command python)) {
@@ -25,24 +24,22 @@ Write-Host "\n[1/4] Installing/updating ChatMock..." -ForegroundColor Cyan
 python -m pip install --upgrade chatmock
 
 Write-Host "\n[2/4] Installing/updating local ngrok..." -ForegroundColor Cyan
-.\install-ngrok.ps1
-
-$Ngrok = Join-Path $Root "tools\ngrok\ngrok.exe"
-if (-not (Test-Path $Ngrok)) {
-  Write-Error "ngrok was not installed at $Ngrok"
-  exit 1
-}
+$NgrokDir = Join-Path $Root "tools\ngrok"
+$NgrokZip = Join-Path $NgrokDir "ngrok.zip"
+$NgrokExe = Join-Path $NgrokDir "ngrok.exe"
+New-Item -ItemType Directory -Force -Path $NgrokDir | Out-Null
+Invoke-WebRequest -Uri "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip" -OutFile $NgrokZip
+Expand-Archive -Force $NgrokZip $NgrokDir
+& $NgrokExe version
 
 Write-Host "\n[3/4] ngrok token" -ForegroundColor Cyan
 $TokenUrl = "https://dashboard.ngrok.com/get-started/your-authtoken"
 Write-Host "Get your token here: $TokenUrl"
 $OpenNgrok = Read-Host "Open ngrok token page in your browser? (Y/n)"
-if ($OpenNgrok -notmatch '^(n|N)$') {
-  Start-Process $TokenUrl
-}
+if ($OpenNgrok -notmatch '^(n|N)$') { Start-Process $TokenUrl }
 $Token = Read-Host "Paste ngrok authtoken (leave empty to skip if already configured)"
 if (-not [string]::IsNullOrWhiteSpace($Token)) {
-  & $Ngrok config add-authtoken $Token
+  & $NgrokExe config add-authtoken $Token
 } else {
   Write-Host "Skipping token setup."
 }
@@ -50,16 +47,7 @@ if (-not [string]::IsNullOrWhiteSpace($Token)) {
 Write-Host "\n[4/4] ChatMock login" -ForegroundColor Cyan
 Write-Host "A browser/OAuth login may open. Log in with your ChatGPT/Codex account."
 $Login = Read-Host "Run 'chatmock login' now? (Y/n)"
-if ($Login -notmatch '^(n|N)$') {
-  chatmock login
-}
+if ($Login -notmatch '^(n|N)$') { chatmock login }
 
 Write-Host "\nSetup complete." -ForegroundColor Green
-$RunNow = Read-Host "Start everything now in the background? (Y/n)"
-if ($RunNow -notmatch '^(n|N)$') {
-  .\run.ps1
-} else {
-  Write-Host "Later, start with: .\run.ps1"
-  Write-Host "That command will print the dynamic ngrok Endpoint URL to paste into Warp."
-  Write-Host "Warp values will be: Endpoint URL = printed by run.ps1, API key = dev-key-change-me, Model = gpt-5.4"
-}
+Write-Host "Start with: .\scripts\windows\run.ps1"

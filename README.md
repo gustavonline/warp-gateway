@@ -17,27 +17,27 @@ Warp -> ngrok -> local gateway -> ChatMock -> ChatGPT/Codex account
 
 ## First-time setup
 
-Run the guided setup script. It installs/checks dependencies, opens the ngrok token page, lets you paste your token, runs ChatMock login, and can start everything at the end.
-
 ### Windows
 
 ```powershell
 cd "$HOME\Downloads\warp-gateway"
-.\setup.ps1
+.\scripts\windows\setup.ps1
 ```
 
 ### macOS / Linux
 
 ```bash
 cd ~/Downloads/warp-gateway
-./setup.sh
+./scripts/macos/setup.sh
 ```
 
-During setup:
+The setup script will:
 
-1. Get an ngrok token from: <https://dashboard.ngrok.com/get-started/your-authtoken>
-2. Paste it when prompted.
-3. Log in with your ChatGPT/Codex account when ChatMock asks.
+1. Install/update ChatMock.
+2. Install/check ngrok.
+3. Open the ngrok token page: <https://dashboard.ngrok.com/get-started/your-authtoken>
+4. Let you paste your ngrok token.
+5. Run `chatmock login` for your ChatGPT/Codex account.
 
 ## Daily use
 
@@ -47,17 +47,17 @@ Run one script. It starts ChatMock and ngrok in the background, then runs the ga
 
 ```powershell
 cd "$HOME\Downloads\warp-gateway"
-.\run.ps1
+.\scripts\windows\run.ps1
 ```
 
 ### macOS / Linux
 
 ```bash
 cd ~/Downloads/warp-gateway
-./run.sh
+./scripts/macos/run.sh
 ```
 
-Keep this terminal open while using Warp. Press `Ctrl+C` to stop viewing gateway logs. To stop ChatMock/ngrok background services too, run `stop-all` below.
+Keep this terminal open while using Warp. Press `Ctrl+C` to stop the gateway, ChatMock, and ngrok.
 
 ## Warp configuration
 
@@ -105,29 +105,13 @@ lemonade/<model-name>
 
 On macOS, use the ChatMock/Codex model unless you also install and configure Lemonade there.
 
-## Status and shutdown
-
-### Windows
-
-```powershell
-.\status.ps1
-.\stop-all.ps1
-```
-
-### macOS / Linux
-
-```bash
-./status.sh
-./stop-all.sh
-```
-
 ## Important files
 
 ```txt
-setup.*      guided first-time setup
-run.*        starts everything and shows gateway logs
-status.*     prints running status and endpoint URL
-stop-all.*   stops background services
-config/      model and gateway configuration
-src/         small gateway server
+scripts/windows/setup.ps1   Windows first-time setup
+scripts/windows/run.ps1     Windows daily run script
+scripts/macos/setup.sh      macOS/Linux first-time setup
+scripts/macos/run.sh        macOS/Linux daily run script
+config/                     model and gateway configuration
+src/                        small gateway server
 ```

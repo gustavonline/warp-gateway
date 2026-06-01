@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 RUN_DIR="$ROOT/.run"
 LOG_DIR="$ROOT/logs"
 mkdir -p "$RUN_DIR" "$LOG_DIR"
@@ -21,14 +21,36 @@ start_bg() {
   echo "Started $name (PID $!)"
 }
 
+stop_bg() {
+  local name="$1"
+  local pid_file="$RUN_DIR/$name.pid"
+  if [[ -f "$pid_file" ]]; then
+    local pid
+    pid="$(cat "$pid_file" 2>/dev/null || true)"
+    if [[ -n "$pid" ]] && kill -0 "$pid" >/dev/null 2>&1; then
+      kill "$pid" >/dev/null 2>&1 || true
+      sleep 0.3
+      kill -9 "$pid" >/dev/null 2>&1 || true
+      echo "Stopped $name (PID $pid)"
+    fi
+    rm -f "$pid_file"
+  fi
+}
+
+cleanup() {
+  stop_bg ngrok
+  stop_bg chatmock
+}
+trap cleanup EXIT INT TERM
+
 command -v chatmock >/dev/null 2>&1 || "$PYTHON" -m pip install --upgrade chatmock
 NGROK="$(command -v ngrok || true)"
 if [[ -z "$NGROK" ]]; then
-  echo "ngrok not found. Install with: brew install ngrok/ngrok/ngrok"
+  echo "ngrok not found. Run ./scripts/macos/setup.sh first."
   exit 1
 fi
 
-echo "Starting ChatMock and ngrok in background, gateway in this terminal..."
+echo "Starting ChatMock and ngrok in background, gateway logs in this terminal..."
 start_bg chatmock chatmock serve
 sleep 2
 start_bg ngrok "$NGROK" http 8320
@@ -54,5 +76,5 @@ if [[ -n "$endpoint" ]]; then
 fi
 
 echo
-echo "Gateway logs below. Press Ctrl+C to stop viewing logs; run ./stop-all.sh to stop background services."
+echo "Gateway logs below. Keep this terminal open. Ctrl+C stops everything."
 node src/server.js
