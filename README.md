@@ -1,16 +1,16 @@
 # Warp ChatMock Gateway
 
-Ultra simpelt setup der gør, at Warp kan bruge ChatMock/Codex via et OpenAI-compatible endpoint.
+A tiny local gateway that lets Warp use ChatMock/Codex through an OpenAI-compatible endpoint.
 
-Flowet er:
+Flow:
 
 ```txt
-Warp -> ngrok -> lokal gateway -> ChatMock -> ChatGPT/Codex konto
+Warp -> ngrok -> local gateway -> ChatMock -> ChatGPT/Codex account
 ```
 
-## Første gang
+## First-time setup
 
-Installer dependencies og login:
+Install dependencies and log in.
 
 ### Windows
 
@@ -21,10 +21,10 @@ cd "$HOME\Downloads\warp-gateway"
 .\install-ngrok.ps1
 ```
 
-Tilføj din ngrok token:
+Add your ngrok token:
 
 ```powershell
-.\tools\ngrok\ngrok.exe config add-authtoken DIN_NGROK_TOKEN
+.\tools\ngrok\ngrok.exe config add-authtoken YOUR_NGROK_TOKEN
 ```
 
 ### macOS / Linux
@@ -34,27 +34,27 @@ cd ~/Downloads/warp-gateway
 ./scripts/install-chatmock.sh
 ./scripts/login-chatmock.sh
 brew install ngrok/ngrok/ngrok
-ngrok config add-authtoken DIN_NGROK_TOKEN
+ngrok config add-authtoken YOUR_NGROK_TOKEN
 ```
 
-## Daglig brug
+## Daily use
 
 ### Windows
 
-Start alt i baggrunden:
+Start everything in the background:
 
 ```powershell
 cd "$HOME\Downloads\warp-gateway"
 .\run-background.ps1
 ```
 
-Stop alt:
+Stop everything:
 
 ```powershell
 .\stop-all.ps1
 ```
 
-Status:
+Check status:
 
 ```powershell
 .\status.ps1
@@ -62,34 +62,34 @@ Status:
 
 ### macOS / Linux
 
-Start alt i baggrunden:
+Start everything in the background:
 
 ```bash
 cd ~/Downloads/warp-gateway
 ./run-background.sh
 ```
 
-Stop alt:
+Stop everything:
 
 ```bash
 ./stop-all.sh
 ```
 
-Status:
+Check status:
 
 ```bash
 ./status.sh
 ```
 
-## Warp config
+## Warp configuration
 
-Når `run-background` er kørt, printer den en URL som denne:
+After running `run-background`, the script prints a URL like this:
 
 ```txt
 https://xxxx.ngrok-free.dev/v1
 ```
 
-Brug den i Warp Custom Inference Endpoint:
+Use it in Warp Custom Inference Endpoint:
 
 ```txt
 Endpoint URL: https://xxxx.ngrok-free.dev/v1
@@ -97,7 +97,7 @@ API key: dev-key-change-me
 Model: gpt-5.4
 ```
 
-Andre modeller:
+Other available models:
 
 ```txt
 gpt-5.5
@@ -107,12 +107,12 @@ gpt-5.3-codex
 gpt-5.3-codex-spark
 ```
 
-## Filer
+## Files
 
 ```txt
-run-background.*   starter ChatMock, gateway og ngrok
-stop-all.*         stopper alt
-status.*           viser status og endpoint
-src/               lille gateway server
-config/            model/gateway config
+run-background.*   starts ChatMock, the gateway, and ngrok
+stop-all.*         stops everything
+status.*           shows service status and endpoint URL
+src/               small gateway server
+config/            model/gateway configuration
 ```
