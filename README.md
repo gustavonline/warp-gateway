@@ -1,6 +1,6 @@
 # Warp ChatMock Gateway
 
-A tiny local gateway that lets Warp use ChatMock/Codex (and optionally a local Lemonade LLM) through a single OpenAI-compatible endpoint.
+A tiny local gateway that lets Warp use ChatMock/Codex and optional local LLMs through one OpenAI-compatible endpoint.
 
 ```txt
 Warp -> ngrok -> local gateway -> ChatMock -> ChatGPT/Codex account
@@ -11,8 +11,9 @@ Warp -> ngrok -> local gateway -> ChatMock -> ChatGPT/Codex account
 
 - One Warp Custom Inference Endpoint URL.
 - Codex/ChatGPT models via ChatMock.
-- Optional local LLM models via Lemonade on machines where Lemonade is installed.
-- One-command background startup after first setup.
+- Optional local LLM models via Lemonade.
+- Auto-discovery for Lemonade models when Lemonade is enabled/running.
+- One-command startup after first setup.
 
 ## First-time setup
 
@@ -40,25 +41,45 @@ During setup:
 
 ## Daily use
 
-### Windows
+### Quiet background mode
+
+Starts ChatMock, the gateway, and ngrok in the background. Prints the dynamic Warp endpoint URL and copies it to your clipboard when possible.
+
+Windows:
 
 ```powershell
 cd "$HOME\Downloads\warp-gateway"
 .\run-background.ps1
 ```
 
-### macOS / Linux
+macOS / Linux:
 
 ```bash
 cd ~/Downloads/warp-gateway
 ./run-background.sh
 ```
 
-The script starts ChatMock, the gateway, and ngrok in the background. It prints the current Warp endpoint URL and copies it to your clipboard when possible.
+### Log mode
+
+Use this if you want the terminal to stay open and show gateway requests/logs while you use Warp.
+
+Windows:
+
+```powershell
+cd "$HOME\Downloads\warp-gateway"
+.\run-with-logs.ps1
+```
+
+macOS / Linux:
+
+```bash
+cd ~/Downloads/warp-gateway
+./run-with-logs.sh
+```
 
 ## Warp configuration
 
-After `run-background` finishes, use the printed values in Warp:
+After startup, use the printed values in Warp:
 
 ```txt
 Endpoint URL: https://xxxx.ngrok-free.dev/v1
@@ -66,7 +87,7 @@ API key: dev-key-change-me
 Model: gpt-5.4
 ```
 
-The ngrok URL is dynamic and may change when ngrok restarts, so use the URL printed by the latest `run-background` run.
+The ngrok URL is dynamic and may change when ngrok restarts, so use the URL printed by the latest startup run.
 
 ## Model names
 
@@ -74,24 +95,36 @@ Recommended:
 
 ```txt
 Codex/ChatMock: gpt-5.4
-Local LLM on Windows with Lemonade: lemonade/Gemma-4-26B-A4B-it-GGUF
+Local LLM with Lemonade: use one of the printed lemonade/... models
 ```
 
-Other ChatMock models:
+ChatMock models:
 
 ```txt
 gpt-5.5
+gpt-5.4
 gpt-5.4-mini
 gpt-5.2
 gpt-5.3-codex
 gpt-5.3-codex-spark
 ```
 
-Example local Lemonade models:
+Lemonade models are discovered automatically from:
+
+```txt
+http://127.0.0.1:13305/v1/models
+```
+
+They appear in Warp as:
+
+```txt
+lemonade/<model-name>
+```
+
+Example:
 
 ```txt
 lemonade/Gemma-4-26B-A4B-it-GGUF
-lemonade/Qwen3.6-35B-A3B-GGUF
 ```
 
 On macOS, use the ChatMock/Codex model unless you also install and configure Lemonade there.
@@ -116,7 +149,8 @@ On macOS, use the ChatMock/Codex model unless you also install and configure Lem
 
 ```txt
 setup.*            guided first-time setup
-run-background.*   starts ChatMock, gateway, and ngrok
+run-background.*   starts everything quietly in the background
+run-with-logs.*    starts dependencies and keeps gateway logs in the terminal
 status.*           prints running status and endpoint URL
 stop-all.*         stops background services
 config/            model and gateway configuration

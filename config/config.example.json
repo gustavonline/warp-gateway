@@ -20,10 +20,9 @@
       "enabled": false,
       "baseUrl": "http://127.0.0.1:13305/v1",
       "apiKey": "lemonade",
-      "models": [
-        { "id": "lemonade/Gemma-4-26B-A4B-it-GGUF", "upstreamModel": "Gemma-4-26B-A4B-it-GGUF", "name": "Lemonade Gemma 4 26B" },
-        { "id": "lemonade/Qwen3.6-35B-A3B-GGUF", "upstreamModel": "Qwen3.6-35B-A3B-GGUF", "name": "Lemonade Qwen 3.6 35B" }
-      ]
+      "discoverModels": true,
+      "discoverPrefix": "lemonade",
+      "models": []
     }
   }
 }
