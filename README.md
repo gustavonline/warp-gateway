@@ -78,6 +78,8 @@ warp-gateway config providers   # list providers
 warp-gateway config enable lmstudio
 warp-gateway config set adapters.lmstudio.baseUrl http://127.0.0.1:1234/v1
 warp-gateway doctor             # check node/python/chatmock/ngrok/config
+warp-gateway update             # update the global CLI from npm
+warp-gateway update --check     # only check whether an update exists
 ```
 
 Short alias:
@@ -146,9 +148,11 @@ Release flow:
 
 ```bash
 npm test
-git tag v0.3.0
-git push origin v0.3.0
+npm version patch
+git push origin main --follow-tags
 ```
+
+The publish workflow runs on pushes to `main` and release tags. It checks whether the package version already exists on npm and only publishes new versions.
 
 The publish workflow uses OIDC and provenance:
 

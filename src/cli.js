@@ -7,8 +7,9 @@ import { logs } from './commands/logs.js';
 import { configCommand } from './commands/config.js';
 import { doctor } from './commands/doctor.js';
 import { stop } from './commands/stop.js';
+import { update, CURRENT_VERSION } from './commands/update.js';
 
-const version = '0.3.0';
+const version = CURRENT_VERSION;
 const [cmd = 'run', ...args] = process.argv.slice(2);
 
 function help() {
@@ -24,6 +25,8 @@ Foreground/debug:
   warp-gateway run                    Run in this terminal and stream logs
   warp-gateway logs --tail            Follow gateway request logs
   warp-gateway doctor                 Check dependencies and config
+  warp-gateway update                 Update this CLI from npm
+  warp-gateway update --check         Only check for updates
 
 Providers/config:
   warp-gateway config                 Show config help
@@ -52,6 +55,7 @@ try {
   else if (cmd === 'logs') await logs({ lines: argValue('-n', argValue('--lines', '50')), file: argValue('--file', 'gateway'), follow: args.includes('--tail') || args.includes('-f') });
   else if (cmd === 'config') await configCommand(args);
   else if (cmd === 'doctor') await doctor();
+  else if (cmd === 'update') await update({ checkOnly: args.includes('--check') || args.includes('-c') });
   else if (cmd === 'stop') await stop();
   else {
     console.error(`Unknown command: ${cmd}\n`);

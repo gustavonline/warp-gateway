@@ -2,6 +2,7 @@ name: Publish to npm
 
 on:
   push:
+    branches: [main]
     tags:
       - 'v*'
 
@@ -21,4 +22,15 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false
       - run: npm test
-      - run: npm publish --provenance --access public
+      - id: package
+        run: node -e "const p=require('./package.json'); console.log('version='+p.version); console.log('name='+p.name)" >> "$GITHUB_OUTPUT"
+      - id: published
+        run: |
+          if npm view "${{ steps.package.outputs.name }}@${{ steps.package.outputs.version }}" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "${{ steps.package.outputs.name }}@${{ steps.package.outputs.version }} already exists on npm; skipping publish."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.published.outputs.exists == 'false'
+        run: npm publish --provenance --access public
