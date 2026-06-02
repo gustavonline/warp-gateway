@@ -138,7 +138,7 @@ This package is intended to be published with npm Trusted Publishing from GitHub
 
 Recommended npm trusted publisher settings:
 
-- GitHub owner/repo: `gustavonline/warp-chatmock-gateway`
+- GitHub owner/repo: `gustavonline/warp-gateway`
 - Workflow filename: `publish.yml`
 - Allowed action: `npm publish`
 

@@ -41,10 +41,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gustavonline/warp-chatmock-gateway.git"
+    "url": "git+https://github.com/gustavonline/warp-gateway.git"
   },
   "bugs": {
-    "url": "https://github.com/gustavonline/warp-chatmock-gateway/issues"
+    "url": "https://github.com/gustavonline/warp-gateway/issues"
   },
-  "homepage": "https://github.com/gustavonline/warp-chatmock-gateway#readme"
+  "homepage": "https://github.com/gustavonline/warp-gateway#readme"
 }
