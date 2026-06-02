@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
 
 const PACKAGE_NAME = '@gustavonline/warp-gateway';
-const CURRENT_VERSION = '0.3.2';
+const CURRENT_VERSION = '0.3.3';
 
 function parseVersion(version) {
   return String(version || '').split('.').map((part) => Number(part.replace(/\D.*/, '')) || 0);
