@@ -1,94 +1,58 @@
-# Warp ChatMock Gateway
+# Warp Gateway
 
-A tiny local gateway that lets Warp use ChatMock/Codex and optional local LLMs through one OpenAI-compatible endpoint.
+A small free CLI gateway that lets Warp use ChatMock/Codex and local OpenAI-compatible LLMs through one custom inference endpoint.
 
 ```txt
-Warp -> ngrok -> local gateway -> ChatMock -> ChatGPT/Codex account
-                         └── optional -> Lemonade local LLM
+Warp -> ngrok free tunnel -> local gateway -> ChatMock/Codex
+                                      ├── LM Studio (optional)
+                                      └── Lemonade (optional)
 ```
 
-## What this gives you
-
-- One Warp Custom Inference Endpoint URL.
-- Codex/ChatGPT models via ChatMock.
-- Optional local LLM models via Lemonade.
-- Auto-discovery for Lemonade models when Lemonade is enabled/running.
-- One run script that starts everything and shows gateway request logs.
-
-## First-time setup
-
-### Windows
-
-```powershell
-cd "$HOME\Downloads\warp-gateway"
-.\scripts\windows\setup.ps1
-```
-
-### macOS / Linux
+## Install
 
 ```bash
-cd ~/Downloads/warp-gateway
-./scripts/macos/setup.sh
+npm install -g @gustavonline/warp-gateway
+warp-gateway setup
+warp-gateway run
 ```
 
-The setup script is safe to run multiple times. It will:
-
-1. Create a local `config/config.json` with a random gateway API key if it does not exist.
-2. Install/update ChatMock.
-3. Install/check ngrok.
-4. Skip ngrok token setup if a valid token is already configured, or let you replace it.
-5. Skip ChatMock login if you are already signed in, or let you log in again.
+`setup` asks for your ngrok authtoken once and runs ChatMock login when needed.
 
 ngrok token page: <https://dashboard.ngrok.com/get-started/your-authtoken>
 
 ## Daily use
 
-Run one script. It starts ChatMock and ngrok in the background, verifies ChatMock is reachable, prints Warp setup instructions, then runs the gateway in the current terminal so you can see request logs.
-
-### Windows
-
-```powershell
-cd "$HOME\Downloads\warp-gateway"
-.\scripts\windows\run.ps1
-```
-
-### macOS / Linux
-
 ```bash
-cd ~/Downloads/warp-gateway
-./scripts/macos/run.sh
+warp-gateway run
 ```
 
-Keep this terminal open while using Warp. Press `Ctrl+C` to stop the gateway, ChatMock, and ngrok.
+Keep the terminal open while using Warp. Press `Ctrl+C` to stop the gateway, ChatMock, and ngrok.
 
-## Warp configuration
-
-After startup, the run script prints exact Warp setup instructions. Use the printed values in Warp:
+The CLI prints the current Warp values:
 
 ```txt
 Endpoint URL: https://xxxx.ngrok-free.dev/v1
-API key: <printed by the run script>
-Model: gpt-5.5
+API key:      <gateway key>
+Model:        gpt-5.5
 ```
 
-The ngrok URL is dynamic and may change when ngrok restarts, and the gateway API key is read from your local config. Use the values printed by the latest run.
+Free ngrok URLs can change. Warp Gateway stores the last URL and gateway key:
 
-## Model names
+- if the ngrok URL is unchanged, the gateway key is reused and Warp settings should still work;
+- if the ngrok URL changed, a new gateway key is generated and the terminal clearly says to update Warp;
+- the ngrok authtoken itself is not rotated or changed by normal runs.
 
-Recommended:
+## Warp configuration
 
-```txt
-Codex/ChatMock: gpt-5.5
-Local LLM with Lemonade: use one of the printed lemonade/... models
-```
+In Warp Settings, find **Custom Inference Endpoint** and use the values printed by `warp-gateway run`.
 
-ChatMock model:
+Recommended model:
 
 ```txt
 gpt-5.5
 ```
 
-Thinking-level aliases:
+Thinking aliases:
 
 ```txt
 gpt-5.5-minimal
@@ -98,29 +62,98 @@ gpt-5.5-high
 gpt-5.5-xhigh
 ```
 
-These aliases all route to `gpt-5.5` and add a `reasoning_effort` override for ChatMock. Use them in Warp's model field when you want a specific thinking level.
+## Commands
 
-Lemonade models are discovered automatically from:
-
-```txt
-http://127.0.0.1:13305/v1/models
+```bash
+warp-gateway setup              # first-time setup / repair
+warp-gateway run                # start ChatMock, ngrok, and gateway in foreground
+warp-gateway run --rotate-key   # force a new gateway API key
+warp-gateway start              # start everything in the background
+warp-gateway stop               # stop saved gateway/ChatMock/ngrok background pids
+warp-gateway status             # show endpoint, API key, pids, and config paths
+warp-gateway logs -n 50         # show recent gateway request logs
+warp-gateway logs --tail        # follow gateway logs
+warp-gateway logs --file ngrok  # show ngrok stdout log
+warp-gateway config providers   # list providers
+warp-gateway config enable lmstudio
+warp-gateway config set adapters.lmstudio.baseUrl http://127.0.0.1:1234/v1
+warp-gateway doctor             # check node/python/chatmock/ngrok/config
 ```
 
-They appear in Warp as:
+Short alias:
 
-```txt
-lemonade/<model-name>
+```bash
+wgw run
 ```
 
-On macOS, use the ChatMock/Codex model unless you also install and configure Lemonade there.
+## Config and logs
 
-## Important files
+Runtime files are stored outside the npm package:
+
+- Windows: `%APPDATA%/warp-gateway/`
+- macOS: `~/Library/Application Support/warp-gateway/`
+- Linux: `${XDG_CONFIG_HOME:-~/.config}/warp-gateway/`
+
+Files include:
 
 ```txt
-scripts/windows/setup.ps1   Windows first-time setup
-scripts/windows/run.ps1     Windows daily run script
-scripts/macos/setup.sh      macOS/Linux first-time setup
-scripts/macos/run.sh        macOS/Linux daily run script
-config/                     model and gateway configuration
-src/                        small gateway server
+config.json
+state.json
+logs/gateway.log
+logs/chatmock.out.log
+logs/chatmock.err.log
+logs/ngrok.out.log
+logs/ngrok.err.log
+tools/ngrok/        # local downloaded ngrok on Windows when needed
 ```
+
+## Providers
+
+Default:
+
+- ChatMock/Codex on `http://127.0.0.1:8000/v1`
+
+Optional/local:
+
+- LM Studio on `http://127.0.0.1:1234/v1` with discovered models as `lmstudio/<model>`
+- Lemonade on `http://127.0.0.1:13305/v1` with discovered models as `lemonade/<model>`
+
+Provider config examples:
+
+```bash
+warp-gateway config providers
+warp-gateway config enable lmstudio
+warp-gateway config disable lemonade
+warp-gateway config set adapters.lmstudio.baseUrl http://127.0.0.1:1234/v1
+warp-gateway config set adapters.lemonade.baseUrl http://127.0.0.1:13305/v1
+```
+
+If the gateway is running, config changes restart it automatically. If it is stopped, run `warp-gateway start` afterwards.
+
+The gateway uses a generic OpenAI-compatible provider shape, so more providers can be added via config later.
+
+## npm publishing / supply-chain safety
+
+This package is intended to be published with npm Trusted Publishing from GitHub Actions, not a long-lived npm token.
+
+Recommended npm trusted publisher settings:
+
+- GitHub owner/repo: `gustavonline/warp-chatmock-gateway`
+- Workflow filename: `publish.yml`
+- Allowed action: `npm publish`
+
+Release flow:
+
+```bash
+npm test
+git tag v0.3.0
+git push origin v0.3.0
+```
+
+The publish workflow uses OIDC and provenance:
+
+```bash
+npm publish --provenance --access public
+```
+
+The package uses a `files` allowlist and `scripts/check-pack.js` to block local config, logs, tools, ngrok binaries, and secrets from being included in the npm tarball.

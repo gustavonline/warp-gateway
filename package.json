@@ -1,16 +1,50 @@
 {
-  "name": "warp-chatmock-gateway",
-  "version": "0.2.0",
-  "private": true,
+  "name": "@gustavonline/warp-gateway",
+  "version": "0.3.0",
+  "description": "A tiny CLI gateway that lets Warp use ChatMock/Codex and local OpenAI-compatible LLMs through ngrok.",
   "type": "module",
+  "bin": {
+    "warp-gateway": "src/cli.js",
+    "wgw": "src/cli.js"
+  },
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
+    "start": "node src/cli.js run",
+    "test": "node --check src/cli.js && node --check src/server.js && node --check src/config.js && node --check src/adapters/openai-compatible.js && node --check src/commands/setup.js && node --check src/commands/run.js && node --check src/commands/start.js && node --check src/commands/status.js && node --check src/commands/logs.js && node --check src/commands/config.js && node --check src/commands/doctor.js && node --check src/commands/stop.js && node --check src/core/app-dirs.js && node --check src/core/config-store.js && node --check src/core/ngrok.js && node --check src/core/processes.js && node scripts/check-pack.js",
+    "pack:check": "node scripts/check-pack.js",
     "chatmock:install": "python -m pip install --upgrade chatmock",
     "chatmock:login": "chatmock login",
     "chatmock:serve": "chatmock serve"
   },
   "engines": {
     "node": ">=20"
-  }
+  },
+  "files": [
+    "src/",
+    "scripts/check-pack.js",
+    "config/config.example.json",
+    "README.md",
+    "TODO.md"
+  ],
+  "keywords": [
+    "warp",
+    "chatmock",
+    "codex",
+    "ngrok",
+    "openai-compatible",
+    "lm-studio",
+    "llm"
+  ],
+  "author": "Gustav Online",
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gustavonline/warp-chatmock-gateway.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gustavonline/warp-chatmock-gateway/issues"
+  },
+  "homepage": "https://github.com/gustavonline/warp-chatmock-gateway#readme"
 }
