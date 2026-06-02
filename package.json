@@ -1,6 +1,6 @@
 {
   "name": "@gustavonline/warp-gateway",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A tiny CLI gateway that lets Warp use ChatMock/Codex and local OpenAI-compatible LLMs through ngrok.",
   "type": "module",
   "bin": {
