@@ -66,6 +66,7 @@ gpt-5.5-xhigh
 
 ```bash
 warp-gateway setup              # first-time setup / repair
+warp-gateway setup --reset-ngrok-token  # replace invalid/revoked ngrok token
 warp-gateway run                # start ChatMock, ngrok, and gateway in foreground
 warp-gateway run --rotate-key   # force a new gateway API key
 warp-gateway start              # start everything in the background
@@ -126,6 +127,7 @@ so it works with Homebrew/macOS Python installations that block global `pip inst
 Default:
 
 - ChatMock/Codex on `http://127.0.0.1:8000/v1`
+- Uses OpenAI/Codex OAuth during `warp-gateway setup`; no local model is required.
 
 Optional/local:
 

@@ -16,7 +16,8 @@ function help() {
   console.log(`Warp Gateway ${version}
 
 Quick start:
-  warp-gateway setup                  First-time setup: ngrok token + ChatMock login
+  warp-gateway setup                  First-time setup: ngrok token + OpenAI/Codex login
+  warp-gateway setup --reset-ngrok-token  Replace a revoked/invalid ngrok token
   warp-gateway start                  Start in background, then return to your shell
   warp-gateway status                 Show Warp URL, API key, model, and process status
   warp-gateway stop                   Stop background gateway, ngrok, and ChatMock
@@ -50,7 +51,7 @@ try {
 
   if (cmd === '--help' || cmd === '-h' || cmd === 'help') help();
   else if (cmd === '--version' || cmd === '-v') console.log(version);
-  else if (cmd === 'setup') await setup();
+  else if (cmd === 'setup') await setup({ resetNgrokToken: args.includes('--reset-ngrok-token') || args.includes('--replace-ngrok-token') });
   else if (cmd === 'run') await runCommand({ rotate: args.includes('--rotate-key') });
   else if (cmd === 'start') await start({ rotate: args.includes('--rotate-key') });
   else if (cmd === 'status') await status();

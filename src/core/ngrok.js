@@ -3,6 +3,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { commandExists, run, waitHttp } from './processes.js';
 import { getPaths } from './app-dirs.js';
+import { dim, ok } from './ui.js';
 
 export async function findNgrok() {
   const paths = getPaths();
@@ -57,7 +58,7 @@ async function downloadNgrok() {
   const zip = path.join(dir, 'ngrok.zip');
   const exe = path.join(dir, spec.executable);
   const url = `https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-${spec.platform}-${spec.arch}.zip`;
-  console.log(`Downloading current ngrok for ${spec.platform}/${spec.arch}...`);
+  console.log(dim(`Downloading current ngrok for ${spec.platform}/${spec.arch}...`));
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Failed downloading ngrok: ${response.status}`);
   fs.writeFileSync(zip, Buffer.from(await response.arrayBuffer()));
@@ -67,6 +68,7 @@ async function downloadNgrok() {
     await run('unzip', ['-o', zip, '-d', dir]);
     fs.chmodSync(exe, 0o755);
   }
+  ok(`ngrok ready: ${exe}`);
   return exe;
 }
 
@@ -101,9 +103,42 @@ export async function addAuthtoken(ngrok, token) {
   await run(ngrok, ['config', 'add-authtoken', token]);
 }
 
-export async function getPublicEndpoint() {
-  await waitHttp('http://127.0.0.1:4040/api/tunnels', 25000);
-  const deadline = Date.now() + 25000;
+function redactSecrets(text) {
+  return text
+    .replace(/(Your authtoken:\s*)\S+/gi, '$1[redacted]')
+    .replace(/(authtoken\s+)[A-Za-z0-9_-]{20,}/gi, '$1[redacted]');
+}
+
+function tailFile(file, lines = 20) {
+  try {
+    return redactSecrets(fs.readFileSync(file, 'utf8').split('\n').slice(-lines).join('\n').trim());
+  } catch {
+    return '';
+  }
+}
+
+function ngrokTroubleshooting(logFile) {
+  const tail = logFile ? tailFile(logFile) : '';
+  if (!tail) return '';
+  const lines = ['Last ngrok log lines:', tail];
+  if (/ERR_NGROK_107|authentication failed|authtoken/i.test(tail)) {
+    lines.push('', 'Your ngrok authtoken looks invalid or revoked. Run: warp-gateway setup --reset-ngrok-token');
+    lines.push('Token page: https://dashboard.ngrok.com/get-started/your-authtoken');
+  }
+  if (/addr already in use|bind/i.test(tail)) {
+    lines.push('', 'Another ngrok process may already be using port 4040. Run: warp-gateway stop');
+  }
+  return lines.join('\n');
+}
+
+export async function getPublicEndpoint({ logFile, timeoutMs = 25000 } = {}) {
+  try {
+    await waitHttp('http://127.0.0.1:4040/api/tunnels', timeoutMs);
+  } catch (error) {
+    const detail = ngrokTroubleshooting(logFile);
+    throw new Error(`ngrok did not start its local API on http://127.0.0.1:4040.\n${detail || error.message}`);
+  }
+  const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
       const r = await fetch('http://127.0.0.1:4040/api/tunnels', { signal: AbortSignal.timeout(2000) });
@@ -113,5 +148,6 @@ export async function getPublicEndpoint() {
     } catch {}
     await new Promise((r) => setTimeout(r, 500));
   }
-  throw new Error('ngrok tunnel did not expose a public HTTPS endpoint');
+  const detail = ngrokTroubleshooting(logFile);
+  throw new Error(`ngrok tunnel did not expose a public HTTPS endpoint.\n${detail || 'Check the ngrok dashboard and logs.'}`);
 }

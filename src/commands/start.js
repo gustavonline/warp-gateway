@@ -4,6 +4,7 @@ import { ensureConfig, updateGatewayKeyForEndpoint, readState, writeState } from
 import { startBackground, killPid, waitHttp } from '../core/processes.js';
 import { ensureNgrokInstalled, hasValidNgrokConfig, getPublicEndpoint } from '../core/ngrok.js';
 import { findChatMock } from '../core/chatmock.js';
+import { command, header, ok, step, warn } from '../core/ui.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SERVER = path.resolve(__dirname, '..', 'server.js');
@@ -20,30 +21,48 @@ export async function start({ rotate = false } = {}) {
     if (pid) killPid(pid);
   }
 
-  console.log('Starting Warp Gateway in background...');
-  const chatmockPid = startBackground('chatmock', chatmock, ['serve'], { out: paths.chatmockOut, err: paths.chatmockErr });
-  console.log(`Started ChatMock (PID ${chatmockPid})`);
-  await waitHttp('http://127.0.0.1:8000/v1/models', 30000);
+  header('Starting Warp Gateway in background');
+  let chatmockPid;
+  let ngrokPid;
+  let gatewayPid;
+  let endpoint;
+  let keyInfo;
+  try {
+    step(1, 3, 'Starting ChatMock');
+    chatmockPid = startBackground('chatmock', chatmock, ['serve'], { out: paths.chatmockOut, err: paths.chatmockErr });
+    ok(`ChatMock started (PID ${chatmockPid})`);
+    await waitHttp('http://127.0.0.1:8000/v1/models', 30000);
 
-  const ngrokPid = startBackground('ngrok', ngrok, ['http', String(config.port || 8320)], { out: paths.ngrokOut, err: paths.ngrokErr });
-  console.log(`Started ngrok (PID ${ngrokPid})`);
-  const endpoint = await getPublicEndpoint();
-  const keyInfo = updateGatewayKeyForEndpoint(endpoint, { rotate });
+    step(2, 3, 'Starting ngrok');
+    ngrokPid = startBackground('ngrok', ngrok, ['http', String(config.port || 8320)], { out: paths.ngrokOut, err: paths.ngrokErr });
+    ok(`ngrok started (PID ${ngrokPid})`);
+    endpoint = await getPublicEndpoint({ logFile: paths.ngrokErr });
 
-  const gatewayPid = startBackground('gateway', process.execPath, [SERVER], {
-    out: paths.gatewayLog,
-    err: paths.gatewayLog,
-    env: { WARP_GATEWAY_CONFIG: paths.config }
-  });
-  writeState({ ...keyInfo.state, chatmockPid, ngrokPid, gatewayPid });
+    step(3, 3, 'Starting gateway');
+    keyInfo = updateGatewayKeyForEndpoint(endpoint, { rotate });
+
+    gatewayPid = startBackground('gateway', process.execPath, [SERVER], {
+      out: paths.gatewayLog,
+      err: paths.gatewayLog,
+      env: { WARP_GATEWAY_CONFIG: paths.config }
+    });
+    writeState({ ...keyInfo.state, chatmockPid, ngrokPid, gatewayPid });
+  } catch (error) {
+    killPid(gatewayPid);
+    killPid(ngrokPid);
+    killPid(chatmockPid);
+    writeState({ ...readState(), gatewayPid: undefined, ngrokPid: undefined, chatmockPid: undefined });
+    throw error;
+  }
 
   const needsWarpUpdate = ['endpoint-changed', 'missing-key', 'first-run', 'manual-rotation'].includes(keyInfo.reason);
   console.log('\nWarp Gateway started in background.');
-  console.log(needsWarpUpdate ? '⚠️  Update Warp with these values:' : '✅ Endpoint unchanged. Warp settings should still work.');
+  if (needsWarpUpdate) warn('Update Warp with these values:');
+  else ok('Endpoint unchanged. Warp settings should still work.');
   if (keyInfo.previousEndpoint && keyInfo.previousEndpoint !== endpoint) console.log(`Previous URL: ${keyInfo.previousEndpoint}`);
-  console.log(`Endpoint URL: ${endpoint}`);
-  console.log(`API key:      ${keyInfo.apiKey}`);
-  console.log('Model:        gpt-5.5');
+  console.log(`Endpoint URL: ${command(endpoint)}`);
+  console.log(`API key:      ${command(keyInfo.apiKey)}`);
+  console.log(`Model:        ${command('gpt-5.5')}`);
   console.log(`Reason:       ${keyInfo.reason}`);
   console.log(`Logs:         ${paths.gatewayLog}`);
 }

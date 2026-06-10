@@ -3,6 +3,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { readState, writeState } from '../core/config-store.js';
+import { command, header, ok, warn } from '../core/ui.js';
 
 const PACKAGE_NAME = '@gustavonline/warp-gateway';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -94,11 +95,12 @@ export async function notifyIfUpdateAvailable({ force = false } = {}) {
   if (compareVersions(latest, CURRENT_VERSION) <= 0) return;
 
   writeState({ ...readState(), latestVersion: latest });
-  console.error(`\nUpdate available for Warp Gateway: ${CURRENT_VERSION} -> ${latest}`);
-  console.error('Run: warp-gateway update\n');
+  console.error(`\n⬆️  Update available for Warp Gateway: ${CURRENT_VERSION} -> ${latest}`);
+  console.error(`Run: ${command('warp-gateway update')}\n`);
 }
 
 export async function update({ checkOnly = false } = {}) {
+  header('Warp Gateway update');
   console.log(`Current version: ${CURRENT_VERSION}`);
   let latest;
   try {
@@ -110,19 +112,19 @@ export async function update({ checkOnly = false } = {}) {
   console.log(`Latest version:  ${latest}`);
 
   if (compareVersions(latest, CURRENT_VERSION) <= 0) {
-    console.log('Warp Gateway is up to date.');
+    ok('Warp Gateway is up to date.');
     return;
   }
 
-  console.log(`Update available: ${CURRENT_VERSION} -> ${latest}`);
+  warn(`Update available: ${CURRENT_VERSION} -> ${latest}`);
   if (checkOnly) {
-    console.log(`Run: npm install -g ${PACKAGE_NAME}`);
+    console.log(`Run: ${command(`npm install -g ${PACKAGE_NAME}`)}`);
     return;
   }
 
   console.log('Updating global npm package...');
   await run('npm', ['install', '-g', PACKAGE_NAME]);
-  console.log('Update complete. Restart the gateway if it is running:');
+  ok('Update complete. Restart the gateway if it is running:');
   console.log('  warp-gateway stop');
   console.log('  warp-gateway start');
 }

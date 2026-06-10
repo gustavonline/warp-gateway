@@ -1,8 +1,18 @@
+import fs from 'node:fs';
 import { ensureConfig } from '../core/config-store.js';
 import { commandExists } from '../core/processes.js';
 import { findNgrok, hasValidNgrokConfig, getNgrokVersion, isSupportedNgrokVersion } from '../core/ngrok.js';
 import { findChatMock } from '../core/chatmock.js';
 import { CURRENT_VERSION, compareVersions, getLatestVersion } from './update.js';
+import { fail, header, ok, warn } from '../core/ui.js';
+
+function recentLogMatches(file, pattern) {
+  try {
+    return pattern.test(fs.readFileSync(file, 'utf8').split('\n').slice(-80).join('\n'));
+  } catch {
+    return false;
+  }
+}
 
 export async function doctor() {
   const { paths, config } = ensureConfig();
@@ -15,12 +25,19 @@ export async function doctor() {
   const ngrokVersion = ngrok ? await getNgrokVersion(ngrok) : undefined;
   checks.push(['ngrok command', Boolean(ngrok), ngrok || 'run setup/install ngrok']);
   checks.push(['ngrok version', isSupportedNgrokVersion(ngrokVersion), ngrokVersion?.raw || 'minimum supported by free accounts is 3.20.0']);
-  checks.push(['ngrok authtoken', ngrok ? await hasValidNgrokConfig(ngrok) : false, 'configured once during setup']);
+  const ngrokConfigOk = ngrok ? await hasValidNgrokConfig(ngrok) : false;
+  const ngrokLogHasInvalidToken = recentLogMatches(paths.ngrokErr, /ERR_NGROK_107|authentication failed|invalid.*authtoken/i);
+  checks.push(['ngrok authtoken', ngrokConfigOk && !ngrokLogHasInvalidToken, ngrokLogHasInvalidToken ? 'recent ngrok run says token is invalid - run setup --reset-ngrok-token' : 'configured once during setup']);
   checks.push(['Gateway API key', Boolean(config.gatewayApiKeys?.[0]), 'generated on first run if missing']);
   let latest = '';
   try { latest = await getLatestVersion(); } catch {}
   checks.push(['CLI version', !latest || compareVersions(latest, CURRENT_VERSION) <= 0, latest ? `${CURRENT_VERSION} installed, ${latest} latest` : `${CURRENT_VERSION} installed`]);
-  console.log('Warp Gateway Doctor');
+  header('Warp Gateway Doctor');
   console.log(`Config: ${paths.config}`);
-  for (const [name, ok, detail] of checks) console.log(`${ok ? '[OK]  ' : '[WARN]'} ${name} - ${detail}`);
+  for (const [name, passed, detail] of checks) {
+    const line = `${name} - ${detail}`;
+    if (passed) ok(line);
+    else if (name === 'ngrok authtoken') fail(line);
+    else warn(line);
+  }
 }
