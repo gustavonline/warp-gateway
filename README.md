@@ -80,6 +80,7 @@ warp-gateway config set adapters.lmstudio.baseUrl http://127.0.0.1:1234/v1
 warp-gateway doctor             # check node/python/chatmock/ngrok/config
 warp-gateway update             # update the global CLI from npm
 warp-gateway update --check     # only check whether an update exists
+# Normal commands also notify once per day when a newer npm version exists.
 ```
 
 Short alias:
@@ -106,8 +107,19 @@ logs/chatmock.out.log
 logs/chatmock.err.log
 logs/ngrok.out.log
 logs/ngrok.err.log
-tools/ngrok/        # local downloaded ngrok on Windows when needed
+tools/ngrok/        # local downloaded ngrok on Windows/Linux when needed
 ```
+
+On macOS, downloaded executable tools are stored in `~/Library/Caches/warp-gateway/tools/`
+instead of `Application Support` so Python/CLI shebangs do not break on paths with spaces:
+
+```txt
+~/Library/Caches/warp-gateway/tools/ngrok/
+~/Library/Caches/warp-gateway/tools/chatmock-venv/
+```
+
+`warp-gateway setup` installs ChatMock into an isolated local Python virtual environment,
+so it works with Homebrew/macOS Python installations that block global `pip install`.
 
 ## Providers
 
@@ -153,6 +165,15 @@ git push origin main --follow-tags
 ```
 
 The publish workflow runs on pushes to `main` and release tags. It checks whether the package version already exists on npm and only publishes new versions.
+
+Installed CLIs check npm at most once per day during normal commands and print:
+
+```txt
+Update available for Warp Gateway: <current> -> <latest>
+Run: warp-gateway update
+```
+
+Set `WARP_GATEWAY_NO_UPDATE_CHECK=1` to disable the background notification.
 
 The publish workflow uses OIDC and provenance:
 

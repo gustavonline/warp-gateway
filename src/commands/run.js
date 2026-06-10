@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { ensureConfig, updateGatewayKeyForEndpoint, readState, writeState } from '../core/config-store.js';
 import { startBackground, killPid, waitHttp } from '../core/processes.js';
 import { ensureNgrokInstalled, hasValidNgrokConfig, getPublicEndpoint } from '../core/ngrok.js';
+import { findChatMock } from '../core/chatmock.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SERVER = path.resolve(__dirname, '..', 'server.js');
@@ -21,6 +22,8 @@ function copy(text) {
 export async function runCommand({ rotate = false } = {}) {
   const { paths, config } = ensureConfig();
   const ngrok = await ensureNgrokInstalled();
+  const chatmock = await findChatMock();
+  if (!chatmock) throw new Error('ChatMock was not found. Run warp-gateway setup.');
   if (!(await hasValidNgrokConfig(ngrok))) throw new Error('ngrok authtoken/config missing. Run warp-gateway setup.');
 
   console.log('Starting ChatMock and ngrok in background, gateway logs in this terminal...');
@@ -28,7 +31,7 @@ export async function runCommand({ rotate = false } = {}) {
   if (state.chatmockPid) killPid(state.chatmockPid);
   if (state.ngrokPid) killPid(state.ngrokPid);
 
-  const chatmockPid = startBackground('chatmock', 'chatmock', ['serve'], { out: paths.chatmockOut, err: paths.chatmockErr });
+  const chatmockPid = startBackground('chatmock', chatmock, ['serve'], { out: paths.chatmockOut, err: paths.chatmockErr });
   console.log(`Started ChatMock (PID ${chatmockPid})`);
   console.log('Waiting for ChatMock on http://127.0.0.1:8000/v1/models...');
   await waitHttp('http://127.0.0.1:8000/v1/models', 30000);

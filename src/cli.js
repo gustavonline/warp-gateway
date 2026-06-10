@@ -7,7 +7,7 @@ import { logs } from './commands/logs.js';
 import { configCommand } from './commands/config.js';
 import { doctor } from './commands/doctor.js';
 import { stop } from './commands/stop.js';
-import { update, CURRENT_VERSION } from './commands/update.js';
+import { update, CURRENT_VERSION, notifyIfUpdateAvailable } from './commands/update.js';
 
 const version = CURRENT_VERSION;
 const [cmd = 'run', ...args] = process.argv.slice(2);
@@ -46,6 +46,8 @@ function argValue(flag, fallback) {
 }
 
 try {
+  if (!['--help', '-h', 'help', '--version', '-v', 'update'].includes(cmd)) await notifyIfUpdateAvailable();
+
   if (cmd === '--help' || cmd === '-h' || cmd === 'help') help();
   else if (cmd === '--version' || cmd === '-v') console.log(version);
   else if (cmd === 'setup') await setup();

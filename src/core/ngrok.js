@@ -6,8 +6,14 @@ import { getPaths } from './app-dirs.js';
 
 export async function findNgrok() {
   const paths = getPaths();
-  const local = process.platform === 'win32' ? path.join(paths.toolsDir, 'ngrok', 'ngrok.exe') : path.join(paths.toolsDir, 'ngrok', 'ngrok');
-  if (fs.existsSync(local)) return local;
+  const executable = process.platform === 'win32' ? 'ngrok.exe' : 'ngrok';
+  const candidates = [
+    path.join(paths.toolsDir, 'ngrok', executable),
+    path.join(paths.root, 'tools', 'ngrok', executable)
+  ];
+  for (const local of candidates) {
+    if (fs.existsSync(local)) return local;
+  }
   if (await commandExists('ngrok')) return 'ngrok';
   return '';
 }
@@ -32,25 +38,41 @@ export function isSupportedNgrokVersion(version) {
   return version.minor >= 20;
 }
 
-async function downloadWindowsNgrok() {
+function ngrokDownloadSpec() {
+  const arch = process.arch === 'arm64' ? 'arm64' : process.arch === 'x64' ? 'amd64' : '';
+  if (!arch) return undefined;
+  if (process.platform === 'win32') return { platform: 'windows', arch, executable: 'ngrok.exe' };
+  if (process.platform === 'darwin') return { platform: 'darwin', arch, executable: 'ngrok' };
+  if (process.platform === 'linux') return { platform: 'linux', arch, executable: 'ngrok' };
+  return undefined;
+}
+
+async function downloadNgrok() {
+  const spec = ngrokDownloadSpec();
+  if (!spec) throw new Error(`Automatic ngrok install is not supported on ${process.platform}/${process.arch}`);
+
   const paths = getPaths();
   const dir = path.join(paths.toolsDir, 'ngrok');
   fs.mkdirSync(dir, { recursive: true });
   const zip = path.join(dir, 'ngrok.zip');
-  const exe = path.join(dir, 'ngrok.exe');
-  const url = 'https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip';
-  console.log('Downloading current ngrok for Windows...');
+  const exe = path.join(dir, spec.executable);
+  const url = `https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-${spec.platform}-${spec.arch}.zip`;
+  console.log(`Downloading current ngrok for ${spec.platform}/${spec.arch}...`);
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Failed downloading ngrok: ${response.status}`);
   fs.writeFileSync(zip, Buffer.from(await response.arrayBuffer()));
-  await run('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', `Expand-Archive -Force '${zip}' '${dir}'`]);
+  if (process.platform === 'win32') {
+    await run('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', `Expand-Archive -Force '${zip}' '${dir}'`]);
+  } else {
+    await run('unzip', ['-o', zip, '-d', dir]);
+    fs.chmodSync(exe, 0o755);
+  }
   return exe;
 }
 
 export async function ensureNgrokInstalled() {
   const existing = await findNgrok();
   if (existing && isSupportedNgrokVersion(await getNgrokVersion(existing))) return existing;
-  if (process.platform === 'win32') return downloadWindowsNgrok();
   if (existing) {
     console.log('ngrok is installed but too old; attempting ngrok update...');
     try {
@@ -58,7 +80,13 @@ export async function ensureNgrokInstalled() {
       if (isSupportedNgrokVersion(await getNgrokVersion(existing))) return existing;
     } catch {}
   }
-  throw new Error('ngrok not found or too old. Install/update ngrok first: https://ngrok.com/download');
+  try {
+    const downloaded = await downloadNgrok();
+    if (isSupportedNgrokVersion(await getNgrokVersion(downloaded))) return downloaded;
+  } catch (error) {
+    throw new Error(`ngrok not found or too old, and automatic install failed: ${error.message}. Install/update ngrok manually: https://ngrok.com/download`);
+  }
+  throw new Error('Downloaded ngrok is not a supported version. Install/update ngrok manually: https://ngrok.com/download');
 }
 
 export async function hasValidNgrokConfig(ngrok) {
